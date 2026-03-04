@@ -11,7 +11,7 @@ export function registerSuggest(program: Command, git: GitManager, validator: Va
         .description('Get an AI-powered commit message suggestion without committing')
         .action(async () => {
             if (!await validator.requireGitRepo()) return;
-            if (!validator.requireApiKey(process.env.GEMINI_API_KEY, 'Gemini')) return;
+            if (!await validator.requireApiKey(process.env.GEMINI_API_KEY, 'Gemini')) return;
 
             const ai = new GeminiAI(process.env.GEMINI_API_KEY!);
             Logger.info('Analysing your changes…');

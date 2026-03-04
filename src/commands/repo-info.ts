@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { GitManager } from '../classes/GitManager';
 import { GitHubAPI } from '../classes/GitHubAPI';
 import { Validator } from '../classes/Validator';
@@ -11,6 +10,7 @@ export function registerRepoInfo(program: Command, git: GitManager, validator: V
         .description('Show GitHub stats for the current repository')
         .action(async () => {
             if (!await validator.requireGitRepo()) return;
+            if (!await validator.requireApiKey(process.env.GITHUB_TOKEN, 'GitHub')) return;
 
             const github = new GitHubAPI(process.env.GITHUB_TOKEN);
             Logger.info('Fetching repo info…');

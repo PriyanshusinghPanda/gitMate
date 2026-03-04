@@ -12,7 +12,7 @@ export function registerCommitStaged(program: Command, git: GitManager, validato
         .option('--no-push', 'Skip push after committing')
         .action(async (options) => {
             if (!await validator.requireGitRepo()) return;
-            if (!validator.requireApiKey(process.env.GEMINI_API_KEY, 'Gemini')) return;
+            if (!await validator.requireApiKey(process.env.GEMINI_API_KEY, 'Gemini')) return;
 
             const ai = new GeminiAI(process.env.GEMINI_API_KEY!);
             Logger.info('Checking staged files…');

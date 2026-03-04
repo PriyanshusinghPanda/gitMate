@@ -1,5 +1,7 @@
+import readline from 'readline';
 import { GitManager } from './GitManager';
 import { Logger } from './Logger';
+import { ConfigManager } from './ConfigManager';
 
 export class Validator {
   private git: GitManager;
@@ -8,9 +10,6 @@ export class Validator {
     this.git = new GitManager();
   }
 
-  /**
-   * Ensures the current working directory is inside a git repository.
-   */
   async requireGitRepo(): Promise<boolean> {
     const isRepo = await this.git.isGitRepo();
     if (!isRepo) {
@@ -20,20 +19,47 @@ export class Validator {
   }
 
   /**
-   * Ensures an environment variable / API key exists.
+   * Ensures an API key exists. If missing, prompts the user to enter it.
    */
-  requireApiKey(key: string | undefined, name: string): boolean {
+  async requireApiKey(key: string | undefined, name: string): Promise<boolean> {
     if (!key || key.trim() === '') {
-      Logger.error(`${name} API key not found!`);
-      Logger.info('Add it to your .env file. See .env.example for reference.');
-      return false;
+      Logger.warning(`${name} API key not found in .env`);
+
+      const input = await this.promptForApiKey(name);
+      if (!input || input.trim() === '') {
+        Logger.error(`${name} API key is required to proceed.`);
+        return false;
+      }
+
+      // Save to .env
+      const envKey = name.toUpperCase() === 'GEMINI' ? 'GEMINI_API_KEY' : 'GITHUB_TOKEN';
+      await ConfigManager.set(envKey, input.trim());
+      ConfigManager.reload();
+
+      Logger.success(`${name} API key saved to .env`);
+      return true;
     }
     return true;
   }
 
-  /**
-   * Validates that a branch name doesn't contain illegal git characters.
-   */
+  private promptForApiKey(name: string): Promise<string> {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    const promptText = name.toLowerCase() === 'gemini'
+      ? `🔑 Enter your Google Gemini API Key: `
+      : `🔑 Enter your GitHub Personal Access Token: `;
+
+    return new Promise((resolve) => {
+      rl.question(promptText, (answer) => {
+        rl.close();
+        resolve(answer);
+      });
+    });
+  }
+
   validateBranchName(name: string): boolean {
     const hasIllegal = /[\s~^:?*\\[\]|@{}>]/.test(name);
     const startsWrong = name.startsWith('-') || name.startsWith('.');
@@ -47,9 +73,6 @@ export class Validator {
     return true;
   }
 
-  /**
-   * Validates that a commit message is not empty and has reasonable length.
-   */
   validateCommitMessage(message: string): boolean {
     if (!message || message.trim() === '') {
       Logger.error('Commit message cannot be empty');

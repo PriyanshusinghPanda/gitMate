@@ -42,7 +42,7 @@ registerStatus(program, git, validator);
 registerLog(program, git, validator);
 registerUndo(program, git, validator);
 registerBranch(program, git, validator);
-registerWhoAmI(program);
+registerWhoAmI(program, validator);
 registerRepoInfo(program, git, validator);
 registerDiff(program, git, validator);
 registerSuggest(program, git, validator);
