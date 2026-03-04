@@ -26,7 +26,21 @@ export function registerSuggest(program: Command, git: GitManager, validator: Va
                 }
 
                 const diff = await git.getDiffContent();
-                const message = await ai.generateCommitMessage(diff, files);
+
+                let message: string;
+                try {
+                    message = await ai.generateCommitMessage(diff, files);
+                } catch (err: any) {
+                    if (err.message === 'AUTH_ERROR_GEMINI') {
+                        const updated = await validator.handleAuthError('Gemini');
+                        if (updated) {
+                            Logger.info('Please run the command again with your new key.');
+                        }
+                        return;
+                    }
+                    throw err;
+                }
+
                 Logger.success('Suggestion ready!');
 
                 Logger.aiBox(message);

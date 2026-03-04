@@ -2,8 +2,8 @@ import axios from 'axios';
 
 export class GeminiAI {
   private apiKey: string;
-  // gemini-1.5-flash is free-tier and fast
-  private model: string = 'gemini-1.5-flash';
+  // gemini-2.5-flash is free-tier and fast
+  private model: string = 'gemini-2.5-flash';
   private baseUrl: string = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   constructor(apiKey: string) {
@@ -36,26 +36,33 @@ Changed files: ${filesStr}
 Git diff:
 ${diffSummary}`;
 
-    const response = await axios.post(
-      `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`,
-      {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 100,
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`,
+        {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 100,
+          },
         },
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+
+      const text: string | undefined =
+        response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!text) throw new Error('Gemini returned an empty response');
+
+      // Strip any accidental surrounding quotes
+      return text.trim().replace(/^["'`]|["'`]$/g, '');
+    } catch (error: any) {
+      if (error.response?.status === 400 && error.response?.data?.error?.message?.includes('API key not valid')) {
+        throw new Error('AUTH_ERROR_GEMINI');
       }
-    );
-
-    const text: string | undefined =
-      response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!text) throw new Error('Gemini returned an empty response');
-
-    // Strip any accidental surrounding quotes
-    return text.trim().replace(/^["'`]|["'`]$/g, '');
+      throw error;
+    }
   }
 }

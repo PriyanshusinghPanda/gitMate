@@ -5,16 +5,36 @@ import { Validator } from '../classes/Validator';
 
 export function registerWhoAmI(program: Command, validator: Validator) {
     program
-        .command('whoami <username>')
-        .description('Look up a GitHub profile  (e.g. gitmate whoami torvalds)')
-        .action(async (username: string) => {
+        .command('whoami [username]')
+        .description('Look up a GitHub profile (yours by default)')
+        .action(async (username?: string) => {
             if (!await validator.requireApiKey(process.env.GITHUB_TOKEN, 'GitHub')) return;
 
             const github = new GitHubAPI(process.env.GITHUB_TOKEN);
-            Logger.info(`Fetching GitHub profile: ${username}…`);
 
             try {
-                const user = await github.getUserInfo(username);
+                if (username) {
+                    Logger.info(`Fetching GitHub profile: ${username}…`);
+                } else {
+                    Logger.info('Fetching your own GitHub profile…');
+                }
+
+                let user;
+                try {
+                    user = username
+                        ? await github.getUserInfo(username)
+                        : await github.getAuthenticatedUser();
+                } catch (error: any) {
+                    if (error.response?.status === 401 || error.response?.status === 403) {
+                        const updated = await validator.handleAuthError('GitHub');
+                        if (updated) {
+                            Logger.info('Please run the command again with your new token.');
+                        }
+                        return;
+                    }
+                    throw error;
+                }
+
                 Logger.success(`Found: ${user.name || user.login}`);
 
                 Logger.infoBox(`👤 GitHub Profile — @${user.login}`, {
@@ -30,7 +50,7 @@ export function registerWhoAmI(program: Command, validator: Validator) {
             } catch (err: any) {
                 Logger.error('Failed to fetch profile');
                 if (err?.response?.status === 404) {
-                    Logger.error(`User "${username}" not found on GitHub`);
+                    Logger.error(username ? `User "${username}" not found` : 'Your profile not found (check your token)');
                 } else {
                     Logger.error(err.message);
                 }

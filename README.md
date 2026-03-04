@@ -37,11 +37,11 @@ GITHUB_TOKEN=your_github_token_here   # optional
 **Getting a Gemini API key (free):**
 1. Go to [https://aistudio.google.com/](https://aistudio.google.com/)
 2. Click **"Get API Key"** → Create new key
-3. The free tier uses `gemini-1.5-flash` — no billing required
+3. The free tier uses `gemini-2.5-flash` — no billing required
 
 **Getting a GitHub Token (optional):**
 1. GitHub → Settings → Developer Settings → Personal Access Tokens
-2. Generate token with `read:user` and `public_repo` scopes
+2. Generate token with `read:user` and `public_repo` scopes 
 3. Increases rate limit from 60 → 5000 requests/hour
 
 ### 3. Build the project
@@ -152,7 +152,7 @@ gitmate/
 
 | API | Purpose | Free Tier |
 |---|---|---|
-| Google Gemini (`gemini-1.5-flash`) | AI commit message generation | ✅ Yes |
+| Google Gemini (`gemini-2.5-flash`) | AI commit message generation | ✅ Yes |
 | GitHub REST API | User profiles & repo stats | ✅ Yes (60 req/hr unauthenticated) |
 
 ---

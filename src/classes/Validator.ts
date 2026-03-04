@@ -42,6 +42,15 @@ export class Validator {
     return true;
   }
 
+  /**
+   * Helper to handle authentication errors by prompting for a new key.
+   */
+  async handleAuthError(name: string): Promise<boolean> {
+    Logger.error(`The provided ${name} API key is invalid.`);
+    Logger.info(`Let's update it now.`);
+    return this.requireApiKey('', name);
+  }
+
   private promptForApiKey(name: string): Promise<string> {
     const rl = readline.createInterface({
       input: process.stdin,

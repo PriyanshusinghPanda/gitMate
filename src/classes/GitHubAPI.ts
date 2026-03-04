@@ -32,7 +32,7 @@ export class GitHubAPI {
 
   constructor(token?: string) {
     const headers: Record<string, string> = {
-      'Accept':     'application/vnd.github.v3+json',
+      'Accept': 'application/vnd.github.v3+json',
       'User-Agent': 'GitMate-CLI/1.0.0',
     };
 
@@ -48,6 +48,14 @@ export class GitHubAPI {
 
   async getUserInfo(username: string): Promise<GitHubUser> {
     const response = await this.client.get<GitHubUser>(`/users/${username}`);
+    return response.data;
+  }
+
+  /**
+   * Fetches profile of the currently authenticated user (based on GITHUB_TOKEN).
+   */
+  async getAuthenticatedUser(): Promise<GitHubUser> {
+    const response = await this.client.get<GitHubUser>('/user');
     return response.data;
   }
 

@@ -23,7 +23,20 @@ export function registerRepoInfo(program: Command, git: GitManager, validator: V
                     return;
                 }
 
-                const repo = await github.getRepoInfo(details.owner, details.repo);
+                let repo;
+                try {
+                    repo = await github.getRepoInfo(details.owner, details.repo);
+                } catch (error: any) {
+                    if (error.response?.status === 401 || error.response?.status === 403) {
+                        const updated = await validator.handleAuthError('GitHub');
+                        if (updated) {
+                            Logger.info('Please run the command again with your new token.');
+                        }
+                        return;
+                    }
+                    throw error;
+                }
+
                 Logger.success(`Fetched: ${repo.full_name}`);
 
                 Logger.infoBox(`📦 Repo — ${repo.full_name}`, {

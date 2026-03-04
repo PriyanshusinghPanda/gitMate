@@ -21,6 +21,7 @@ import { registerRepoInfo } from './commands/repo-info';
 import { registerDiff } from './commands/diff';
 import { registerSuggest } from './commands/suggest';
 import { registerInfo } from './commands/info';
+import { registerSetup } from './commands/setup';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ registerRepoInfo(program, git, validator);
 registerDiff(program, git, validator);
 registerSuggest(program, git, validator);
 registerInfo(program);
+registerSetup(program, validator);
 
 program.parse(process.argv);
 

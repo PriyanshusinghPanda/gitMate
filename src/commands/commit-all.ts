@@ -31,7 +31,21 @@ export function registerCommitAll(program: Command, git: GitManager, validator: 
 
                 Logger.info('Analysing changes with Gemini AI…');
                 const diff = await git.getDiffContent();
-                const message = await ai.generateCommitMessage(diff, stagedFiles);
+
+                let message: string;
+                try {
+                    message = await ai.generateCommitMessage(diff, stagedFiles);
+                } catch (err: any) {
+                    if (err.message === 'AUTH_ERROR_GEMINI') {
+                        const updated = await validator.handleAuthError('Gemini');
+                        if (updated) {
+                            Logger.info('Please run the command again with your new key.');
+                        }
+                        return;
+                    }
+                    throw err;
+                }
+
                 Logger.success('AI commit message generated');
 
                 Logger.aiBox(message);
